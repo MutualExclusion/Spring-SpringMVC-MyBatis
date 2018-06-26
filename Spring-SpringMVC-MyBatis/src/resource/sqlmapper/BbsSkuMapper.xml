@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.BbsSkuDao">
+    <!-- BbsSku的resultMap,column是给数据库列起的别名,它对应property类的属性-->
+    <resultMap id="result_BbsSku_Map" type="com.entity.BbsSku">
+        <id column="id" property="id" />
+        <result column="delive_fee" property="deliveFee" />
+        <result column="color_id" property="colorId" />
+        <result column="size" property="size" />
+        <result column="create_time" property="createTime" />
+        <result column="price" property="price" />
+        <result column="product_id" property="productId" />
+        <result column="market_price" property="marketPrice" />
+        <result column="upper_limit" property="upperLimit" />
+        <result column="stock" property="stock" />
+    </resultMap>
+
+	   <!-- Assist用于辅助工具类setRequires设置的条件,${req.require}表示列名,#{req.value}表示值它是防SQL注入的 -->
+    <sql id="Assist">
+        <where>
+            <foreach collection="require" item="req" separator=" ">
+                ${req.require} 
+                <if test="req.value != null"> #{req.value}</if> 
+                <if test="req.values != null">
+                    <foreach collection="req.values" item="val" separator=","> 
+                        #{val} 
+                    </foreach> 
+                </if> 
+                <if test="req.suffix != null"> ${req.suffix}</if> 
+            </foreach>
+        </where>
+    </sql>
+
+	   <!-- updateAssist用于更新数据的使用它拓展自Assist,用于辅助工具类setRequires设置的条件,${req.require}表示列名,#{req.value}表示值它是防SQL注入的 -->
+    <sql id="updateAssist">
+        <where>
+            <foreach collection="assist.require" item="req" separator=" ">
+                ${req.require} 
+                <if test="req.value != null"> #{req.value}</if> 
+                <if test="req.values != null">
+                    <foreach collection="req.values" item="val" separator=","> 
+                        #{val} 
+                    </foreach> 
+                </if> 
+                <if test="req.suffix != null"> ${req.suffix}</if> 
+            </foreach>
+        </where>
+    </sql>
+
+    <!-- 数据库中表名为:bbs_sku的列名,as前是数据库的列明,as后是列的别名用于映射成实体类中的属性,需要注意的是别名必须与resultMap中的column别名一致 -->
+    <sql id="bbs_sku_Column">
+        bbs_sku.id as id
+        ,bbs_sku.delive_fee as delive_fee
+        ,bbs_sku.color_id as color_id
+        ,bbs_sku.size as size
+        ,bbs_sku.create_time as create_time
+        ,bbs_sku.price as price
+        ,bbs_sku.product_id as product_id
+        ,bbs_sku.market_price as market_price
+        ,bbs_sku.upper_limit as upper_limit
+        ,bbs_sku.stock as stock
+    </sql>
+
+    <!--获得类名为:BbsSku对应的数据库表的数据总行数 -->
+    <select id="getBbsSkuRowCount" parameterType="com.common.Assist" resultType="java.lang.Long">
+        select count(id) from bbs_sku
+        <if test="require!=null"><include refid="Assist" /></if>
+    </select>
+    <!-- 获得类名为:BbsSku对应数据库中表的数据集合 -->
+    <select id="selectBbsSku" parameterType="com.common.Assist"  resultMap="result_BbsSku_Map">
+        select  <if test="distinct !=null">${distinct}</if>
+        <choose>
+            <when test="resultColumn!=null">${resultColumn}</when>
+            <otherwise>
+        <include refid="bbs_sku_Column" /> 
+            </otherwise>
+        </choose>
+        from bbs_sku
+        <choose>
+            <when test="rowSize ==null">
+                <if test="require!=null">
+                    <include refid="Assist" />
+                </if>
+                <if test="order !=null">${order}</if>
+            </when>
+            <otherwise>
+                inner join
+                (
+                SELECT id as primary_key FROM bbs_sku
+                <if test="require!=null">
+                    <include refid="Assist" />
+                </if>
+                <if test="order !=null">${order}</if>
+                <choose>
+                    <when test="startRow !=null and rowSize !=null">LIMIT #{startRow},#{rowSize} </when>
+                    <when test="rowSize !=null">LIMIT #{rowSize}</when>
+                 </choose>
+                 ) as tmp
+                 on tmp.primary_key=bbs_sku.id
+            </otherwise>
+        </choose>
+    </select> 
+
+    <!-- 获得一个BbsSku对象,以参数BbsSku对象中不为空的属性作为条件进行查询-->
+    <select id="selectBbsSkuByObj" parameterType="com.entity.BbsSku" resultMap="result_BbsSku_Map">
+        select 
+            <include refid="bbs_sku_Column" /> 
+        from bbs_sku
+        <where>
+            <if test="stock != null "> and bbs_sku.stock = #{stock}</if>
+            <if test="upperLimit != null "> and bbs_sku.upper_limit = #{upperLimit}</if>
+            <if test="marketPrice != null "> and bbs_sku.market_price = #{marketPrice}</if>
+            <if test="productId != null "> and bbs_sku.product_id = #{productId}</if>
+            <if test="price != null "> and bbs_sku.price = #{price}</if>
+            <if test="createTime != null "> and bbs_sku.create_time = #{createTime}</if>
+            <if test="size != null "> and bbs_sku.size = #{size}</if>
+            <if test="colorId != null "> and bbs_sku.color_id = #{colorId}</if>
+            <if test="deliveFee != null "> and bbs_sku.delive_fee = #{deliveFee}</if>
+            <if test="id != null "> and bbs_sku.id = #{id}</if>
+        </where>
+    </select> 
+
+    <!-- 通过BbsSku的id获得对应数据库中表的数据对象-->
+    <select id="selectBbsSkuById" parameterType="java.lang.Long" resultMap="result_BbsSku_Map">
+        select 
+            <include refid="bbs_sku_Column" /> 
+        from bbs_sku
+        where bbs_sku.id = #{id}
+    </select> 
+
+    <!-- 将BbsSku插入到对应数据库的表中,包括属性值为null的数据-->
+
+    <insert id="insertBbsSku" parameterType="com.entity.BbsSku">
+        insert into bbs_sku(id,delive_fee,color_id,size,create_time,price,product_id,market_price,upper_limit,stock) 
+        values(#{id},#{deliveFee},#{colorId},#{size},#{createTime},#{price},#{productId},#{marketPrice},#{upperLimit},#{stock})
+    </insert>
+
+    <!-- 将BbsSku中属性值不为null的数据,插入到对应数据库的表中-->
+    <insert id="insertNonEmptyBbsSku" parameterType="com.entity.BbsSku">
+        insert into bbs_sku
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="deliveFee != null">delive_fee,</if>
+            <if test="colorId != null">color_id,</if>
+            <if test="size != null">size,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="price != null">price,</if>
+            <if test="productId != null">product_id,</if>
+            <if test="marketPrice != null">market_price,</if>
+            <if test="upperLimit != null">upper_limit,</if>
+            <if test="stock != null">stock,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null"> #{id},</if>
+            <if test="deliveFee != null"> #{deliveFee},</if>
+            <if test="colorId != null"> #{colorId},</if>
+            <if test="size != null"> #{size},</if>
+            <if test="createTime != null"> #{createTime},</if>
+            <if test="price != null"> #{price},</if>
+            <if test="productId != null"> #{productId},</if>
+            <if test="marketPrice != null"> #{marketPrice},</if>
+            <if test="upperLimit != null"> #{upperLimit},</if>
+            <if test="stock != null"> #{stock},</if>
+        </trim>
+    </insert>
+
+    <!-- 将BbsSku批量插入到对应数据库的表中-->
+    <insert id="insertBbsSkuByBatch" parameterType="ArrayList">
+        insert into bbs_sku(id,delive_fee,color_id,size,create_time,price,product_id,market_price,upper_limit,stock) values
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.deliveFee},#{item.colorId},#{item.size},#{item.createTime},#{item.price},#{item.productId},#{item.marketPrice},#{item.upperLimit},#{item.stock})
+        </foreach>
+    </insert>
+
+    <!-- 通过BbsSku的id将数据库表中对应的数据删除-->
+    <delete id="deleteBbsSkuById" parameterType="java.lang.Long">
+        delete from bbs_sku
+        where id = #{id}
+    </delete>
+
+    <!-- 通过辅助工具Assist中的条件将BbsSku对应的数据库表的数据删除-->
+    <delete id="deleteBbsSku" parameterType="com.common.Assist">
+        delete from bbs_sku
+        <if test="require!=null"><include refid="Assist" /></if>
+    </delete>
+
+    <!-- 通过BbsSku的id将BbsSku的数据更新到数据库中对应的表,包括值null的数据-->
+    <update id="updateBbsSkuById" parameterType="com.entity.BbsSku">
+        update bbs_sku set
+            delive_fee=#{deliveFee}
+            ,color_id=#{colorId}
+            ,size=#{size}
+            ,create_time=#{createTime}
+            ,price=#{price}
+            ,product_id=#{productId}
+            ,market_price=#{marketPrice}
+            ,upper_limit=#{upperLimit}
+            ,stock=#{stock}
+        where id=#{id}
+    </update>
+
+    <!-- 通过BbsSku的id将BbsSku中属性值不为null的数据更新到数据库对应的表中-->
+    <update id="updateNonEmptyBbsSkuById" parameterType="com.entity.BbsSku">
+        update bbs_sku
+        <set>
+            <if test="deliveFee != null">
+                delive_fee=#{deliveFee},
+            </if>
+            <if test="colorId != null">
+                color_id=#{colorId},
+            </if>
+            <if test="size != null">
+                size=#{size},
+            </if>
+            <if test="createTime != null">
+                create_time=#{createTime},
+            </if>
+            <if test="price != null">
+                price=#{price},
+            </if>
+            <if test="productId != null">
+                product_id=#{productId},
+            </if>
+            <if test="marketPrice != null">
+                market_price=#{marketPrice},
+            </if>
+            <if test="upperLimit != null">
+                upper_limit=#{upperLimit},
+            </if>
+            <if test="stock != null">
+                stock=#{stock},
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+
+    <!-- 通过辅助工具Assist中的条件将BbsSku中的数据更新到数据库对应的表中,包括值为null的数据-->
+    <update id="updateBbsSku" parameterType="map">
+        update bbs_sku
+        <set>
+                id=#{enti.id},
+                delive_fee=#{enti.deliveFee},
+                color_id=#{enti.colorId},
+                size=#{enti.size},
+                create_time=#{enti.createTime},
+                price=#{enti.price},
+                product_id=#{enti.productId},
+                market_price=#{enti.marketPrice},
+                upper_limit=#{enti.upperLimit},
+                stock=#{enti.stock},
+        </set>
+        <if test="assist.require!=null"><include refid="updateAssist" /></if>
+    </update>
+
+    <!-- 通过辅助工具Assist中的条件将BbsSku中属性值不为null的数据更新到数据库对应的表中-->
+    <update id="updateNonEmptyBbsSku" parameterType="map">
+        update bbs_sku
+        <set>
+            <if test="enti.id != null">
+                id=#{enti.id},
+            </if>
+            <if test="enti.deliveFee != null">
+                delive_fee=#{enti.deliveFee},
+            </if>
+            <if test="enti.colorId != null">
+                color_id=#{enti.colorId},
+            </if>
+            <if test="enti.size != null">
+                size=#{enti.size},
+            </if>
+            <if test="enti.createTime != null">
+                create_time=#{enti.createTime},
+            </if>
+            <if test="enti.price != null">
+                price=#{enti.price},
+            </if>
+            <if test="enti.productId != null">
+                product_id=#{enti.productId},
+            </if>
+            <if test="enti.marketPrice != null">
+                market_price=#{enti.marketPrice},
+            </if>
+            <if test="enti.upperLimit != null">
+                upper_limit=#{enti.upperLimit},
+            </if>
+            <if test="enti.stock != null">
+                stock=#{enti.stock},
+            </if>
+        </set>
+        <if test="assist.require!=null"><include refid="updateAssist" /></if>
+    </update>
+
+</mapper>

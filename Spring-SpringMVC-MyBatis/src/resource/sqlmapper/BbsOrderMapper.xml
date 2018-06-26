@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.BbsOrderDao">
+    <!-- BbsOrder的resultMap,column是给数据库列起的别名,它对应property类的属性-->
+    <resultMap id="result_BbsOrder_Map" type="com.entity.BbsOrder">
+        <id column="id" property="id" />
+        <result column="delivery" property="delivery" />
+        <result column="note" property="note" />
+        <result column="payment_way" property="paymentWay" />
+        <result column="total_price" property="totalPrice" />
+        <result column="order_price" property="orderPrice" />
+        <result column="is_paiy" property="isPaiy" />
+        <result column="buyer_id" property="buyerId" />
+        <result column="payment_cash" property="paymentCash" />
+        <result column="is_confirm" property="isConfirm" />
+        <result column="deliver_fee" property="deliverFee" />
+        <result column="create_date" property="createDate" />
+        <result column="order_state" property="orderState" />
+    </resultMap>
+
+	   <!-- Assist用于辅助工具类setRequires设置的条件,${req.require}表示列名,#{req.value}表示值它是防SQL注入的 -->
+    <sql id="Assist">
+        <where>
+            <foreach collection="require" item="req" separator=" ">
+                ${req.require} 
+                <if test="req.value != null"> #{req.value}</if> 
+                <if test="req.values != null">
+                    <foreach collection="req.values" item="val" separator=","> 
+                        #{val} 
+                    </foreach> 
+                </if> 
+                <if test="req.suffix != null"> ${req.suffix}</if> 
+            </foreach>
+        </where>
+    </sql>
+
+	   <!-- updateAssist用于更新数据的使用它拓展自Assist,用于辅助工具类setRequires设置的条件,${req.require}表示列名,#{req.value}表示值它是防SQL注入的 -->
+    <sql id="updateAssist">
+        <where>
+            <foreach collection="assist.require" item="req" separator=" ">
+                ${req.require} 
+                <if test="req.value != null"> #{req.value}</if> 
+                <if test="req.values != null">
+                    <foreach collection="req.values" item="val" separator=","> 
+                        #{val} 
+                    </foreach> 
+                </if> 
+                <if test="req.suffix != null"> ${req.suffix}</if> 
+            </foreach>
+        </where>
+    </sql>
+
+    <!-- 数据库中表名为:bbs_order的列名,as前是数据库的列明,as后是列的别名用于映射成实体类中的属性,需要注意的是别名必须与resultMap中的column别名一致 -->
+    <sql id="bbs_order_Column">
+        bbs_order.id as id
+        ,bbs_order.delivery as delivery
+        ,bbs_order.note as note
+        ,bbs_order.payment_way as payment_way
+        ,bbs_order.total_price as total_price
+        ,bbs_order.order_price as order_price
+        ,bbs_order.is_paiy as is_paiy
+        ,bbs_order.buyer_id as buyer_id
+        ,bbs_order.payment_cash as payment_cash
+        ,bbs_order.is_confirm as is_confirm
+        ,bbs_order.deliver_fee as deliver_fee
+        ,bbs_order.create_date as create_date
+        ,bbs_order.order_state as order_state
+    </sql>
+
+    <!--获得类名为:BbsOrder对应的数据库表的数据总行数 -->
+    <select id="getBbsOrderRowCount" parameterType="com.common.Assist" resultType="java.lang.Long">
+        select count(id) from bbs_order
+        <if test="require!=null"><include refid="Assist" /></if>
+    </select>
+    <!-- 获得类名为:BbsOrder对应数据库中表的数据集合 -->
+    <select id="selectBbsOrder" parameterType="com.common.Assist"  resultMap="result_BbsOrder_Map">
+        select  <if test="distinct !=null">${distinct}</if>
+        <choose>
+            <when test="resultColumn!=null">${resultColumn}</when>
+            <otherwise>
+        <include refid="bbs_order_Column" /> 
+            </otherwise>
+        </choose>
+        from bbs_order
+        <choose>
+            <when test="rowSize ==null">
+                <if test="require!=null">
+                    <include refid="Assist" />
+                </if>
+                <if test="order !=null">${order}</if>
+            </when>
+            <otherwise>
+                inner join
+                (
+                SELECT id as primary_key FROM bbs_order
+                <if test="require!=null">
+                    <include refid="Assist" />
+                </if>
+                <if test="order !=null">${order}</if>
+                <choose>
+                    <when test="startRow !=null and rowSize !=null">LIMIT #{startRow},#{rowSize} </when>
+                    <when test="rowSize !=null">LIMIT #{rowSize}</when>
+                 </choose>
+                 ) as tmp
+                 on tmp.primary_key=bbs_order.id
+            </otherwise>
+        </choose>
+    </select> 
+
+    <!-- 获得一个BbsOrder对象,以参数BbsOrder对象中不为空的属性作为条件进行查询-->
+    <select id="selectBbsOrderByObj" parameterType="com.entity.BbsOrder" resultMap="result_BbsOrder_Map">
+        select 
+            <include refid="bbs_order_Column" /> 
+        from bbs_order
+        <where>
+            <if test="orderState != null "> and bbs_order.order_state = #{orderState}</if>
+            <if test="createDate != null "> and bbs_order.create_date = #{createDate}</if>
+            <if test="deliverFee != null "> and bbs_order.deliver_fee = #{deliverFee}</if>
+            <if test="isConfirm != null "> and bbs_order.is_confirm = #{isConfirm}</if>
+            <if test="paymentCash != null "> and bbs_order.payment_cash = #{paymentCash}</if>
+            <if test="buyerId != null "> and bbs_order.buyer_id = #{buyerId}</if>
+            <if test="isPaiy != null "> and bbs_order.is_paiy = #{isPaiy}</if>
+            <if test="orderPrice != null "> and bbs_order.order_price = #{orderPrice}</if>
+            <if test="totalPrice != null "> and bbs_order.total_price = #{totalPrice}</if>
+            <if test="paymentWay != null "> and bbs_order.payment_way = #{paymentWay}</if>
+            <if test="note != null "> and bbs_order.note = #{note}</if>
+            <if test="delivery != null "> and bbs_order.delivery = #{delivery}</if>
+            <if test="id != null "> and bbs_order.id = #{id}</if>
+        </where>
+    </select> 
+
+    <!-- 通过BbsOrder的id获得对应数据库中表的数据对象-->
+    <select id="selectBbsOrderById" parameterType="java.lang.Long" resultMap="result_BbsOrder_Map">
+        select 
+            <include refid="bbs_order_Column" /> 
+        from bbs_order
+        where bbs_order.id = #{id}
+    </select> 
+
+    <!-- 将BbsOrder插入到对应数据库的表中,包括属性值为null的数据-->
+
+    <insert id="insertBbsOrder" parameterType="com.entity.BbsOrder">
+        insert into bbs_order(id,delivery,note,payment_way,total_price,order_price,is_paiy,buyer_id,payment_cash,is_confirm,deliver_fee,create_date,order_state) 
+        values(#{id},#{delivery},#{note},#{paymentWay},#{totalPrice},#{orderPrice},#{isPaiy},#{buyerId},#{paymentCash},#{isConfirm},#{deliverFee},#{createDate},#{orderState})
+    </insert>
+
+    <!-- 将BbsOrder中属性值不为null的数据,插入到对应数据库的表中-->
+    <insert id="insertNonEmptyBbsOrder" parameterType="com.entity.BbsOrder">
+        insert into bbs_order
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="delivery != null">delivery,</if>
+            <if test="note != null">note,</if>
+            <if test="paymentWay != null">payment_way,</if>
+            <if test="totalPrice != null">total_price,</if>
+            <if test="orderPrice != null">order_price,</if>
+            <if test="isPaiy != null">is_paiy,</if>
+            <if test="buyerId != null">buyer_id,</if>
+            <if test="paymentCash != null">payment_cash,</if>
+            <if test="isConfirm != null">is_confirm,</if>
+            <if test="deliverFee != null">deliver_fee,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="orderState != null">order_state,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null"> #{id},</if>
+            <if test="delivery != null"> #{delivery},</if>
+            <if test="note != null"> #{note},</if>
+            <if test="paymentWay != null"> #{paymentWay},</if>
+            <if test="totalPrice != null"> #{totalPrice},</if>
+            <if test="orderPrice != null"> #{orderPrice},</if>
+            <if test="isPaiy != null"> #{isPaiy},</if>
+            <if test="buyerId != null"> #{buyerId},</if>
+            <if test="paymentCash != null"> #{paymentCash},</if>
+            <if test="isConfirm != null"> #{isConfirm},</if>
+            <if test="deliverFee != null"> #{deliverFee},</if>
+            <if test="createDate != null"> #{createDate},</if>
+            <if test="orderState != null"> #{orderState},</if>
+        </trim>
+    </insert>
+
+    <!-- 将BbsOrder批量插入到对应数据库的表中-->
+    <insert id="insertBbsOrderByBatch" parameterType="ArrayList">
+        insert into bbs_order(id,delivery,note,payment_way,total_price,order_price,is_paiy,buyer_id,payment_cash,is_confirm,deliver_fee,create_date,order_state) values
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.delivery},#{item.note},#{item.paymentWay},#{item.totalPrice},#{item.orderPrice},#{item.isPaiy},#{item.buyerId},#{item.paymentCash},#{item.isConfirm},#{item.deliverFee},#{item.createDate},#{item.orderState})
+        </foreach>
+    </insert>
+
+    <!-- 通过BbsOrder的id将数据库表中对应的数据删除-->
+    <delete id="deleteBbsOrderById" parameterType="java.lang.Long">
+        delete from bbs_order
+        where id = #{id}
+    </delete>
+
+    <!-- 通过辅助工具Assist中的条件将BbsOrder对应的数据库表的数据删除-->
+    <delete id="deleteBbsOrder" parameterType="com.common.Assist">
+        delete from bbs_order
+        <if test="require!=null"><include refid="Assist" /></if>
+    </delete>
+
+    <!-- 通过BbsOrder的id将BbsOrder的数据更新到数据库中对应的表,包括值null的数据-->
+    <update id="updateBbsOrderById" parameterType="com.entity.BbsOrder">
+        update bbs_order set
+            delivery=#{delivery}
+            ,note=#{note}
+            ,payment_way=#{paymentWay}
+            ,total_price=#{totalPrice}
+            ,order_price=#{orderPrice}
+            ,is_paiy=#{isPaiy}
+            ,buyer_id=#{buyerId}
+            ,payment_cash=#{paymentCash}
+            ,is_confirm=#{isConfirm}
+            ,deliver_fee=#{deliverFee}
+            ,create_date=#{createDate}
+            ,order_state=#{orderState}
+        where id=#{id}
+    </update>
+
+    <!-- 通过BbsOrder的id将BbsOrder中属性值不为null的数据更新到数据库对应的表中-->
+    <update id="updateNonEmptyBbsOrderById" parameterType="com.entity.BbsOrder">
+        update bbs_order
+        <set>
+            <if test="delivery != null">
+                delivery=#{delivery},
+            </if>
+            <if test="note != null">
+                note=#{note},
+            </if>
+            <if test="paymentWay != null">
+                payment_way=#{paymentWay},
+            </if>
+            <if test="totalPrice != null">
+                total_price=#{totalPrice},
+            </if>
+            <if test="orderPrice != null">
+                order_price=#{orderPrice},
+            </if>
+            <if test="isPaiy != null">
+                is_paiy=#{isPaiy},
+            </if>
+            <if test="buyerId != null">
+                buyer_id=#{buyerId},
+            </if>
+            <if test="paymentCash != null">
+                payment_cash=#{paymentCash},
+            </if>
+            <if test="isConfirm != null">
+                is_confirm=#{isConfirm},
+            </if>
+            <if test="deliverFee != null">
+                deliver_fee=#{deliverFee},
+            </if>
+            <if test="createDate != null">
+                create_date=#{createDate},
+            </if>
+            <if test="orderState != null">
+                order_state=#{orderState},
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+
+    <!-- 通过辅助工具Assist中的条件将BbsOrder中的数据更新到数据库对应的表中,包括值为null的数据-->
+    <update id="updateBbsOrder" parameterType="map">
+        update bbs_order
+        <set>
+                id=#{enti.id},
+                delivery=#{enti.delivery},
+                note=#{enti.note},
+                payment_way=#{enti.paymentWay},
+                total_price=#{enti.totalPrice},
+                order_price=#{enti.orderPrice},
+                is_paiy=#{enti.isPaiy},
+                buyer_id=#{enti.buyerId},
+                payment_cash=#{enti.paymentCash},
+                is_confirm=#{enti.isConfirm},
+                deliver_fee=#{enti.deliverFee},
+                create_date=#{enti.createDate},
+                order_state=#{enti.orderState},
+        </set>
+        <if test="assist.require!=null"><include refid="updateAssist" /></if>
+    </update>
+
+    <!-- 通过辅助工具Assist中的条件将BbsOrder中属性值不为null的数据更新到数据库对应的表中-->
+    <update id="updateNonEmptyBbsOrder" parameterType="map">
+        update bbs_order
+        <set>
+            <if test="enti.id != null">
+                id=#{enti.id},
+            </if>
+            <if test="enti.delivery != null">
+                delivery=#{enti.delivery},
+            </if>
+            <if test="enti.note != null">
+                note=#{enti.note},
+            </if>
+            <if test="enti.paymentWay != null">
+                payment_way=#{enti.paymentWay},
+            </if>
+            <if test="enti.totalPrice != null">
+                total_price=#{enti.totalPrice},
+            </if>
+            <if test="enti.orderPrice != null">
+                order_price=#{enti.orderPrice},
+            </if>
+            <if test="enti.isPaiy != null">
+                is_paiy=#{enti.isPaiy},
+            </if>
+            <if test="enti.buyerId != null">
+                buyer_id=#{enti.buyerId},
+            </if>
+            <if test="enti.paymentCash != null">
+                payment_cash=#{enti.paymentCash},
+            </if>
+            <if test="enti.isConfirm != null">
+                is_confirm=#{enti.isConfirm},
+            </if>
+            <if test="enti.deliverFee != null">
+                deliver_fee=#{enti.deliverFee},
+            </if>
+            <if test="enti.createDate != null">
+                create_date=#{enti.createDate},
+            </if>
+            <if test="enti.orderState != null">
+                order_state=#{enti.orderState},
+            </if>
+        </set>
+        <if test="assist.require!=null"><include refid="updateAssist" /></if>
+    </update>
+
+</mapper>

@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.BbsBuyerDao">
+    <!-- BbsBuyer的resultMap,column是给数据库列起的别名,它对应property类的属性-->
+    <resultMap id="result_BbsBuyer_Map" type="com.entity.BbsBuyer">
+        <id column="id" property="id" />
+        <result column="gender" property="gender" />
+        <result column="town" property="town" />
+        <result column="city" property="city" />
+        <result column="real_name" property="realName" />
+        <result column="register_time" property="registerTime" />
+        <result column="password" property="password" />
+        <result column="province" property="province" />
+        <result column="phone" property="phone" />
+        <result column="is_del" property="isDel" />
+        <result column="addr" property="addr" />
+        <result column="email" property="email" />
+        <result column="username" property="username" />
+    </resultMap>
+
+	   <!-- Assist用于辅助工具类setRequires设置的条件,${req.require}表示列名,#{req.value}表示值它是防SQL注入的 -->
+    <sql id="Assist">
+        <where>
+            <foreach collection="require" item="req" separator=" ">
+                ${req.require} 
+                <if test="req.value != null"> #{req.value}</if> 
+                <if test="req.values != null">
+                    <foreach collection="req.values" item="val" separator=","> 
+                        #{val} 
+                    </foreach> 
+                </if> 
+                <if test="req.suffix != null"> ${req.suffix}</if> 
+            </foreach>
+        </where>
+    </sql>
+
+	   <!-- updateAssist用于更新数据的使用它拓展自Assist,用于辅助工具类setRequires设置的条件,${req.require}表示列名,#{req.value}表示值它是防SQL注入的 -->
+    <sql id="updateAssist">
+        <where>
+            <foreach collection="assist.require" item="req" separator=" ">
+                ${req.require} 
+                <if test="req.value != null"> #{req.value}</if> 
+                <if test="req.values != null">
+                    <foreach collection="req.values" item="val" separator=","> 
+                        #{val} 
+                    </foreach> 
+                </if> 
+                <if test="req.suffix != null"> ${req.suffix}</if> 
+            </foreach>
+        </where>
+    </sql>
+
+    <!-- 数据库中表名为:bbs_buyer的列名,as前是数据库的列明,as后是列的别名用于映射成实体类中的属性,需要注意的是别名必须与resultMap中的column别名一致 -->
+    <sql id="bbs_buyer_Column">
+        bbs_buyer.id as id
+        ,bbs_buyer.gender as gender
+        ,bbs_buyer.town as town
+        ,bbs_buyer.city as city
+        ,bbs_buyer.real_name as real_name
+        ,bbs_buyer.register_time as register_time
+        ,bbs_buyer.password as password
+        ,bbs_buyer.province as province
+        ,bbs_buyer.phone as phone
+        ,bbs_buyer.is_del as is_del
+        ,bbs_buyer.addr as addr
+        ,bbs_buyer.email as email
+        ,bbs_buyer.username as username
+    </sql>
+
+    <!--获得类名为:BbsBuyer对应的数据库表的数据总行数 -->
+    <select id="getBbsBuyerRowCount" parameterType="com.common.Assist" resultType="java.lang.Long">
+        select count(id) from bbs_buyer
+        <if test="require!=null"><include refid="Assist" /></if>
+    </select>
+    <!-- 获得类名为:BbsBuyer对应数据库中表的数据集合 -->
+    <select id="selectBbsBuyer" parameterType="com.common.Assist"  resultMap="result_BbsBuyer_Map">
+        select  <if test="distinct !=null">${distinct}</if>
+        <choose>
+            <when test="resultColumn!=null">${resultColumn}</when>
+            <otherwise>
+        <include refid="bbs_buyer_Column" /> 
+            </otherwise>
+        </choose>
+        from bbs_buyer
+        <choose>
+            <when test="rowSize ==null">
+                <if test="require!=null">
+                    <include refid="Assist" />
+                </if>
+                <if test="order !=null">${order}</if>
+            </when>
+            <otherwise>
+                inner join
+                (
+                SELECT id as primary_key FROM bbs_buyer
+                <if test="require!=null">
+                    <include refid="Assist" />
+                </if>
+                <if test="order !=null">${order}</if>
+                <choose>
+                    <when test="startRow !=null and rowSize !=null">LIMIT #{startRow},#{rowSize} </when>
+                    <when test="rowSize !=null">LIMIT #{rowSize}</when>
+                 </choose>
+                 ) as tmp
+                 on tmp.primary_key=bbs_buyer.id
+            </otherwise>
+        </choose>
+    </select> 
+
+    <!-- 获得一个BbsBuyer对象,以参数BbsBuyer对象中不为空的属性作为条件进行查询-->
+    <select id="selectBbsBuyerByObj" parameterType="com.entity.BbsBuyer" resultMap="result_BbsBuyer_Map">
+        select 
+            <include refid="bbs_buyer_Column" /> 
+        from bbs_buyer
+        <where>
+            <if test="username != null "> and bbs_buyer.username = #{username}</if>
+            <if test="email != null "> and bbs_buyer.email = #{email}</if>
+            <if test="addr != null "> and bbs_buyer.addr = #{addr}</if>
+            <if test="isDel != null "> and bbs_buyer.is_del = #{isDel}</if>
+            <if test="phone != null "> and bbs_buyer.phone = #{phone}</if>
+            <if test="province != null "> and bbs_buyer.province = #{province}</if>
+            <if test="password != null "> and bbs_buyer.password = #{password}</if>
+            <if test="registerTime != null "> and bbs_buyer.register_time = #{registerTime}</if>
+            <if test="realName != null "> and bbs_buyer.real_name = #{realName}</if>
+            <if test="city != null "> and bbs_buyer.city = #{city}</if>
+            <if test="town != null "> and bbs_buyer.town = #{town}</if>
+            <if test="gender != null "> and bbs_buyer.gender = #{gender}</if>
+            <if test="id != null "> and bbs_buyer.id = #{id}</if>
+        </where>
+    </select> 
+
+    <!-- 通过BbsBuyer的id获得对应数据库中表的数据对象-->
+    <select id="selectBbsBuyerById" parameterType="java.lang.Long" resultMap="result_BbsBuyer_Map">
+        select 
+            <include refid="bbs_buyer_Column" /> 
+        from bbs_buyer
+        where bbs_buyer.id = #{id}
+    </select> 
+
+    <!-- 将BbsBuyer插入到对应数据库的表中,包括属性值为null的数据-->
+
+    <insert id="insertBbsBuyer" parameterType="com.entity.BbsBuyer">
+        insert into bbs_buyer(id,gender,town,city,real_name,register_time,password,province,phone,is_del,addr,email,username) 
+        values(#{id},#{gender},#{town},#{city},#{realName},#{registerTime},#{password},#{province},#{phone},#{isDel},#{addr},#{email},#{username})
+    </insert>
+
+    <!-- 将BbsBuyer中属性值不为null的数据,插入到对应数据库的表中-->
+    <insert id="insertNonEmptyBbsBuyer" parameterType="com.entity.BbsBuyer">
+        insert into bbs_buyer
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="gender != null">gender,</if>
+            <if test="town != null">town,</if>
+            <if test="city != null">city,</if>
+            <if test="realName != null">real_name,</if>
+            <if test="registerTime != null">register_time,</if>
+            <if test="password != null">password,</if>
+            <if test="province != null">province,</if>
+            <if test="phone != null">phone,</if>
+            <if test="isDel != null">is_del,</if>
+            <if test="addr != null">addr,</if>
+            <if test="email != null">email,</if>
+            <if test="username != null">username,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null"> #{id},</if>
+            <if test="gender != null"> #{gender},</if>
+            <if test="town != null"> #{town},</if>
+            <if test="city != null"> #{city},</if>
+            <if test="realName != null"> #{realName},</if>
+            <if test="registerTime != null"> #{registerTime},</if>
+            <if test="password != null"> #{password},</if>
+            <if test="province != null"> #{province},</if>
+            <if test="phone != null"> #{phone},</if>
+            <if test="isDel != null"> #{isDel},</if>
+            <if test="addr != null"> #{addr},</if>
+            <if test="email != null"> #{email},</if>
+            <if test="username != null"> #{username},</if>
+        </trim>
+    </insert>
+
+    <!-- 将BbsBuyer批量插入到对应数据库的表中-->
+    <insert id="insertBbsBuyerByBatch" parameterType="ArrayList">
+        insert into bbs_buyer(id,gender,town,city,real_name,register_time,password,province,phone,is_del,addr,email,username) values
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.gender},#{item.town},#{item.city},#{item.realName},#{item.registerTime},#{item.password},#{item.province},#{item.phone},#{item.isDel},#{item.addr},#{item.email},#{item.username})
+        </foreach>
+    </insert>
+
+    <!-- 通过BbsBuyer的id将数据库表中对应的数据删除-->
+    <delete id="deleteBbsBuyerById" parameterType="java.lang.Long">
+        delete from bbs_buyer
+        where id = #{id}
+    </delete>
+
+    <!-- 通过辅助工具Assist中的条件将BbsBuyer对应的数据库表的数据删除-->
+    <delete id="deleteBbsBuyer" parameterType="com.common.Assist">
+        delete from bbs_buyer
+        <if test="require!=null"><include refid="Assist" /></if>
+    </delete>
+
+    <!-- 通过BbsBuyer的id将BbsBuyer的数据更新到数据库中对应的表,包括值null的数据-->
+    <update id="updateBbsBuyerById" parameterType="com.entity.BbsBuyer">
+        update bbs_buyer set
+            gender=#{gender}
+            ,town=#{town}
+            ,city=#{city}
+            ,real_name=#{realName}
+            ,register_time=#{registerTime}
+            ,password=#{password}
+            ,province=#{province}
+            ,phone=#{phone}
+            ,is_del=#{isDel}
+            ,addr=#{addr}
+            ,email=#{email}
+            ,username=#{username}
+        where id=#{id}
+    </update>
+
+    <!-- 通过BbsBuyer的id将BbsBuyer中属性值不为null的数据更新到数据库对应的表中-->
+    <update id="updateNonEmptyBbsBuyerById" parameterType="com.entity.BbsBuyer">
+        update bbs_buyer
+        <set>
+            <if test="gender != null">
+                gender=#{gender},
+            </if>
+            <if test="town != null">
+                town=#{town},
+            </if>
+            <if test="city != null">
+                city=#{city},
+            </if>
+            <if test="realName != null">
+                real_name=#{realName},
+            </if>
+            <if test="registerTime != null">
+                register_time=#{registerTime},
+            </if>
+            <if test="password != null">
+                password=#{password},
+            </if>
+            <if test="province != null">
+                province=#{province},
+            </if>
+            <if test="phone != null">
+                phone=#{phone},
+            </if>
+            <if test="isDel != null">
+                is_del=#{isDel},
+            </if>
+            <if test="addr != null">
+                addr=#{addr},
+            </if>
+            <if test="email != null">
+                email=#{email},
+            </if>
+            <if test="username != null">
+                username=#{username},
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+
+    <!-- 通过辅助工具Assist中的条件将BbsBuyer中的数据更新到数据库对应的表中,包括值为null的数据-->
+    <update id="updateBbsBuyer" parameterType="map">
+        update bbs_buyer
+        <set>
+                id=#{enti.id},
+                gender=#{enti.gender},
+                town=#{enti.town},
+                city=#{enti.city},
+                real_name=#{enti.realName},
+                register_time=#{enti.registerTime},
+                password=#{enti.password},
+                province=#{enti.province},
+                phone=#{enti.phone},
+                is_del=#{enti.isDel},
+                addr=#{enti.addr},
+                email=#{enti.email},
+                username=#{enti.username},
+        </set>
+        <if test="assist.require!=null"><include refid="updateAssist" /></if>
+    </update>
+
+    <!-- 通过辅助工具Assist中的条件将BbsBuyer中属性值不为null的数据更新到数据库对应的表中-->
+    <update id="updateNonEmptyBbsBuyer" parameterType="map">
+        update bbs_buyer
+        <set>
+            <if test="enti.id != null">
+                id=#{enti.id},
+            </if>
+            <if test="enti.gender != null">
+                gender=#{enti.gender},
+            </if>
+            <if test="enti.town != null">
+                town=#{enti.town},
+            </if>
+            <if test="enti.city != null">
+                city=#{enti.city},
+            </if>
+            <if test="enti.realName != null">
+                real_name=#{enti.realName},
+            </if>
+            <if test="enti.registerTime != null">
+                register_time=#{enti.registerTime},
+            </if>
+            <if test="enti.password != null">
+                password=#{enti.password},
+            </if>
+            <if test="enti.province != null">
+                province=#{enti.province},
+            </if>
+            <if test="enti.phone != null">
+                phone=#{enti.phone},
+            </if>
+            <if test="enti.isDel != null">
+                is_del=#{enti.isDel},
+            </if>
+            <if test="enti.addr != null">
+                addr=#{enti.addr},
+            </if>
+            <if test="enti.email != null">
+                email=#{enti.email},
+            </if>
+            <if test="enti.username != null">
+                username=#{enti.username},
+            </if>
+        </set>
+        <if test="assist.require!=null"><include refid="updateAssist" /></if>
+    </update>
+
+</mapper>

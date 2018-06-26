@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.BbsAdminDao">
+    <!-- BbsAdmin的resultMap,column是给数据库列起的别名,它对应property类的属性-->
+    <resultMap id="result_BbsAdmin_Map" type="com.entity.BbsAdmin">
+        <id column="id" property="id" />
+        <result column="password" property="password" />
+        <result column="gender" property="gender" />
+        <result column="phone" property="phone" />
+        <result column="img_url" property="imgUrl" />
+        <result column="name" property="name" />
+        <result column="real_name" property="realName" />
+        <result column="power" property="power" />
+        <result column="email" property="email" />
+        <result column="register_time" property="registerTime" />
+    </resultMap>
+
+	   <!-- Assist用于辅助工具类setRequires设置的条件,${req.require}表示列名,#{req.value}表示值它是防SQL注入的 -->
+    <sql id="Assist">
+        <where>
+            <foreach collection="require" item="req" separator=" ">
+                ${req.require} 
+                <if test="req.value != null"> #{req.value}</if> 
+                <if test="req.values != null">
+                    <foreach collection="req.values" item="val" separator=","> 
+                        #{val} 
+                    </foreach> 
+                </if> 
+                <if test="req.suffix != null"> ${req.suffix}</if> 
+            </foreach>
+        </where>
+    </sql>
+
+	   <!-- updateAssist用于更新数据的使用它拓展自Assist,用于辅助工具类setRequires设置的条件,${req.require}表示列名,#{req.value}表示值它是防SQL注入的 -->
+    <sql id="updateAssist">
+        <where>
+            <foreach collection="assist.require" item="req" separator=" ">
+                ${req.require} 
+                <if test="req.value != null"> #{req.value}</if> 
+                <if test="req.values != null">
+                    <foreach collection="req.values" item="val" separator=","> 
+                        #{val} 
+                    </foreach> 
+                </if> 
+                <if test="req.suffix != null"> ${req.suffix}</if> 
+            </foreach>
+        </where>
+    </sql>
+
+    <!-- 数据库中表名为:bbs_admin的列名,as前是数据库的列明,as后是列的别名用于映射成实体类中的属性,需要注意的是别名必须与resultMap中的column别名一致 -->
+    <sql id="bbs_admin_Column">
+        bbs_admin.id as id
+        ,bbs_admin.password as password
+        ,bbs_admin.gender as gender
+        ,bbs_admin.phone as phone
+        ,bbs_admin.img_url as img_url
+        ,bbs_admin.name as name
+        ,bbs_admin.real_name as real_name
+        ,bbs_admin.power as power
+        ,bbs_admin.email as email
+        ,bbs_admin.register_time as register_time
+    </sql>
+
+    <!--获得类名为:BbsAdmin对应的数据库表的数据总行数 -->
+    <select id="getBbsAdminRowCount" parameterType="com.common.Assist" resultType="java.lang.Long">
+        select count(id) from bbs_admin
+        <if test="require!=null"><include refid="Assist" /></if>
+    </select>
+    <!-- 获得类名为:BbsAdmin对应数据库中表的数据集合 -->
+    <select id="selectBbsAdmin" parameterType="com.common.Assist"  resultMap="result_BbsAdmin_Map">
+        select  <if test="distinct !=null">${distinct}</if>
+        <choose>
+            <when test="resultColumn!=null">${resultColumn}</when>
+            <otherwise>
+        <include refid="bbs_admin_Column" /> 
+            </otherwise>
+        </choose>
+        from bbs_admin
+        <choose>
+            <when test="rowSize ==null">
+                <if test="require!=null">
+                    <include refid="Assist" />
+                </if>
+                <if test="order !=null">${order}</if>
+            </when>
+            <otherwise>
+                inner join
+                (
+                SELECT id as primary_key FROM bbs_admin
+                <if test="require!=null">
+                    <include refid="Assist" />
+                </if>
+                <if test="order !=null">${order}</if>
+                <choose>
+                    <when test="startRow !=null and rowSize !=null">LIMIT #{startRow},#{rowSize} </when>
+                    <when test="rowSize !=null">LIMIT #{rowSize}</when>
+                 </choose>
+                 ) as tmp
+                 on tmp.primary_key=bbs_admin.id
+            </otherwise>
+        </choose>
+    </select> 
+
+    <!-- 获得一个BbsAdmin对象,以参数BbsAdmin对象中不为空的属性作为条件进行查询-->
+    <select id="selectBbsAdminByObj" parameterType="com.entity.BbsAdmin" resultMap="result_BbsAdmin_Map">
+        select 
+            <include refid="bbs_admin_Column" /> 
+        from bbs_admin
+        <where>
+            <if test="registerTime != null "> and bbs_admin.register_time = #{registerTime}</if>
+            <if test="email != null "> and bbs_admin.email = #{email}</if>
+            <if test="power != null "> and bbs_admin.power = #{power}</if>
+            <if test="realName != null "> and bbs_admin.real_name = #{realName}</if>
+            <if test="name != null "> and bbs_admin.name = #{name}</if>
+            <if test="imgUrl != null "> and bbs_admin.img_url = #{imgUrl}</if>
+            <if test="phone != null "> and bbs_admin.phone = #{phone}</if>
+            <if test="gender != null "> and bbs_admin.gender = #{gender}</if>
+            <if test="password != null "> and bbs_admin.password = #{password}</if>
+            <if test="id != null "> and bbs_admin.id = #{id}</if>
+        </where>
+    </select> 
+
+    <!-- 通过BbsAdmin的id获得对应数据库中表的数据对象-->
+    <select id="selectBbsAdminById" parameterType="java.lang.Long" resultMap="result_BbsAdmin_Map">
+        select 
+            <include refid="bbs_admin_Column" /> 
+        from bbs_admin
+        where bbs_admin.id = #{id}
+    </select> 
+
+    <!-- 将BbsAdmin插入到对应数据库的表中,包括属性值为null的数据-->
+
+    <insert id="insertBbsAdmin" parameterType="com.entity.BbsAdmin">
+        insert into bbs_admin(id,password,gender,phone,img_url,name,real_name,power,email,register_time) 
+        values(#{id},#{password},#{gender},#{phone},#{imgUrl},#{name},#{realName},#{power},#{email},#{registerTime})
+    </insert>
+
+    <!-- 将BbsAdmin中属性值不为null的数据,插入到对应数据库的表中-->
+    <insert id="insertNonEmptyBbsAdmin" parameterType="com.entity.BbsAdmin">
+        insert into bbs_admin
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="password != null">password,</if>
+            <if test="gender != null">gender,</if>
+            <if test="phone != null">phone,</if>
+            <if test="imgUrl != null">img_url,</if>
+            <if test="name != null">name,</if>
+            <if test="realName != null">real_name,</if>
+            <if test="power != null">power,</if>
+            <if test="email != null">email,</if>
+            <if test="registerTime != null">register_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null"> #{id},</if>
+            <if test="password != null"> #{password},</if>
+            <if test="gender != null"> #{gender},</if>
+            <if test="phone != null"> #{phone},</if>
+            <if test="imgUrl != null"> #{imgUrl},</if>
+            <if test="name != null"> #{name},</if>
+            <if test="realName != null"> #{realName},</if>
+            <if test="power != null"> #{power},</if>
+            <if test="email != null"> #{email},</if>
+            <if test="registerTime != null"> #{registerTime},</if>
+        </trim>
+    </insert>
+
+    <!-- 将BbsAdmin批量插入到对应数据库的表中-->
+    <insert id="insertBbsAdminByBatch" parameterType="ArrayList">
+        insert into bbs_admin(id,password,gender,phone,img_url,name,real_name,power,email,register_time) values
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.password},#{item.gender},#{item.phone},#{item.imgUrl},#{item.name},#{item.realName},#{item.power},#{item.email},#{item.registerTime})
+        </foreach>
+    </insert>
+
+    <!-- 通过BbsAdmin的id将数据库表中对应的数据删除-->
+    <delete id="deleteBbsAdminById" parameterType="java.lang.Long">
+        delete from bbs_admin
+        where id = #{id}
+    </delete>
+
+    <!-- 通过辅助工具Assist中的条件将BbsAdmin对应的数据库表的数据删除-->
+    <delete id="deleteBbsAdmin" parameterType="com.common.Assist">
+        delete from bbs_admin
+        <if test="require!=null"><include refid="Assist" /></if>
+    </delete>
+
+    <!-- 通过BbsAdmin的id将BbsAdmin的数据更新到数据库中对应的表,包括值null的数据-->
+    <update id="updateBbsAdminById" parameterType="com.entity.BbsAdmin">
+        update bbs_admin set
+            password=#{password}
+            ,gender=#{gender}
+            ,phone=#{phone}
+            ,img_url=#{imgUrl}
+            ,name=#{name}
+            ,real_name=#{realName}
+            ,power=#{power}
+            ,email=#{email}
+            ,register_time=#{registerTime}
+        where id=#{id}
+    </update>
+
+    <!-- 通过BbsAdmin的id将BbsAdmin中属性值不为null的数据更新到数据库对应的表中-->
+    <update id="updateNonEmptyBbsAdminById" parameterType="com.entity.BbsAdmin">
+        update bbs_admin
+        <set>
+            <if test="password != null">
+                password=#{password},
+            </if>
+            <if test="gender != null">
+                gender=#{gender},
+            </if>
+            <if test="phone != null">
+                phone=#{phone},
+            </if>
+            <if test="imgUrl != null">
+                img_url=#{imgUrl},
+            </if>
+            <if test="name != null">
+                name=#{name},
+            </if>
+            <if test="realName != null">
+                real_name=#{realName},
+            </if>
+            <if test="power != null">
+                power=#{power},
+            </if>
+            <if test="email != null">
+                email=#{email},
+            </if>
+            <if test="registerTime != null">
+                register_time=#{registerTime},
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+
+    <!-- 通过辅助工具Assist中的条件将BbsAdmin中的数据更新到数据库对应的表中,包括值为null的数据-->
+    <update id="updateBbsAdmin" parameterType="map">
+        update bbs_admin
+        <set>
+                id=#{enti.id},
+                password=#{enti.password},
+                gender=#{enti.gender},
+                phone=#{enti.phone},
+                img_url=#{enti.imgUrl},
+                name=#{enti.name},
+                real_name=#{enti.realName},
+                power=#{enti.power},
+                email=#{enti.email},
+                register_time=#{enti.registerTime},
+        </set>
+        <if test="assist.require!=null"><include refid="updateAssist" /></if>
+    </update>
+
+    <!-- 通过辅助工具Assist中的条件将BbsAdmin中属性值不为null的数据更新到数据库对应的表中-->
+    <update id="updateNonEmptyBbsAdmin" parameterType="map">
+        update bbs_admin
+        <set>
+            <if test="enti.id != null">
+                id=#{enti.id},
+            </if>
+            <if test="enti.password != null">
+                password=#{enti.password},
+            </if>
+            <if test="enti.gender != null">
+                gender=#{enti.gender},
+            </if>
+            <if test="enti.phone != null">
+                phone=#{enti.phone},
+            </if>
+            <if test="enti.imgUrl != null">
+                img_url=#{enti.imgUrl},
+            </if>
+            <if test="enti.name != null">
+                name=#{enti.name},
+            </if>
+            <if test="enti.realName != null">
+                real_name=#{enti.realName},
+            </if>
+            <if test="enti.power != null">
+                power=#{enti.power},
+            </if>
+            <if test="enti.email != null">
+                email=#{enti.email},
+            </if>
+            <if test="enti.registerTime != null">
+                register_time=#{enti.registerTime},
+            </if>
+        </set>
+        <if test="assist.require!=null"><include refid="updateAssist" /></if>
+    </update>
+
+</mapper>

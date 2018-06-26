@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.BbsProductDao">
+    <!-- BbsProduct的resultMap,column是给数据库列起的别名,它对应property类的属性-->
+    <resultMap id="result_BbsProduct_Map" type="com.entity.BbsProduct">
+        <id column="id" property="id" />
+        <result column="create_time" property="createTime" />
+        <result column="is_new" property="isNew" />
+        <result column="is_commend" property="isCommend" />
+        <result column="weight" property="weight" />
+        <result column="description" property="description" />
+        <result column="package_list" property="packageList" />
+        <result column="is_show" property="isShow" />
+        <result column="colors" property="colors" />
+        <result column="brand_id" property="brandId" />
+        <result column="sizes" property="sizes" />
+        <result column="img_url" property="imgUrl" />
+        <result column="is_hot" property="isHot" />
+        <result column="name" property="name" />
+        <result column="is_del" property="isDel" />
+    </resultMap>
+
+	   <!-- Assist用于辅助工具类setRequires设置的条件,${req.require}表示列名,#{req.value}表示值它是防SQL注入的 -->
+    <sql id="Assist">
+        <where>
+            <foreach collection="require" item="req" separator=" ">
+                ${req.require} 
+                <if test="req.value != null"> #{req.value}</if> 
+                <if test="req.values != null">
+                    <foreach collection="req.values" item="val" separator=","> 
+                        #{val} 
+                    </foreach> 
+                </if> 
+                <if test="req.suffix != null"> ${req.suffix}</if> 
+            </foreach>
+        </where>
+    </sql>
+
+	   <!-- updateAssist用于更新数据的使用它拓展自Assist,用于辅助工具类setRequires设置的条件,${req.require}表示列名,#{req.value}表示值它是防SQL注入的 -->
+    <sql id="updateAssist">
+        <where>
+            <foreach collection="assist.require" item="req" separator=" ">
+                ${req.require} 
+                <if test="req.value != null"> #{req.value}</if> 
+                <if test="req.values != null">
+                    <foreach collection="req.values" item="val" separator=","> 
+                        #{val} 
+                    </foreach> 
+                </if> 
+                <if test="req.suffix != null"> ${req.suffix}</if> 
+            </foreach>
+        </where>
+    </sql>
+
+    <!-- 数据库中表名为:bbs_product的列名,as前是数据库的列明,as后是列的别名用于映射成实体类中的属性,需要注意的是别名必须与resultMap中的column别名一致 -->
+    <sql id="bbs_product_Column">
+        bbs_product.id as id
+        ,bbs_product.create_time as create_time
+        ,bbs_product.is_new as is_new
+        ,bbs_product.is_commend as is_commend
+        ,bbs_product.weight as weight
+        ,bbs_product.description as description
+        ,bbs_product.package_list as package_list
+        ,bbs_product.is_show as is_show
+        ,bbs_product.colors as colors
+        ,bbs_product.brand_id as brand_id
+        ,bbs_product.sizes as sizes
+        ,bbs_product.img_url as img_url
+        ,bbs_product.is_hot as is_hot
+        ,bbs_product.name as name
+        ,bbs_product.is_del as is_del
+    </sql>
+
+    <!--获得类名为:BbsProduct对应的数据库表的数据总行数 -->
+    <select id="getBbsProductRowCount" parameterType="com.common.Assist" resultType="java.lang.Long">
+        select count(id) from bbs_product
+        <if test="require!=null"><include refid="Assist" /></if>
+    </select>
+    <!-- 获得类名为:BbsProduct对应数据库中表的数据集合 -->
+    <select id="selectBbsProduct" parameterType="com.common.Assist"  resultMap="result_BbsProduct_Map">
+        select  <if test="distinct !=null">${distinct}</if>
+        <choose>
+            <when test="resultColumn!=null">${resultColumn}</when>
+            <otherwise>
+        <include refid="bbs_product_Column" /> 
+            </otherwise>
+        </choose>
+        from bbs_product
+        <choose>
+            <when test="rowSize ==null">
+                <if test="require!=null">
+                    <include refid="Assist" />
+                </if>
+                <if test="order !=null">${order}</if>
+            </when>
+            <otherwise>
+                inner join
+                (
+                SELECT id as primary_key FROM bbs_product
+                <if test="require!=null">
+                    <include refid="Assist" />
+                </if>
+                <if test="order !=null">${order}</if>
+                <choose>
+                    <when test="startRow !=null and rowSize !=null">LIMIT #{startRow},#{rowSize} </when>
+                    <when test="rowSize !=null">LIMIT #{rowSize}</when>
+                 </choose>
+                 ) as tmp
+                 on tmp.primary_key=bbs_product.id
+            </otherwise>
+        </choose>
+    </select> 
+
+    <!-- 获得一个BbsProduct对象,以参数BbsProduct对象中不为空的属性作为条件进行查询-->
+    <select id="selectBbsProductByObj" parameterType="com.entity.BbsProduct" resultMap="result_BbsProduct_Map">
+        select 
+            <include refid="bbs_product_Column" /> 
+        from bbs_product
+        <where>
+            <if test="isDel != null "> and bbs_product.is_del = #{isDel}</if>
+            <if test="name != null "> and bbs_product.name = #{name}</if>
+            <if test="isHot != null "> and bbs_product.is_hot = #{isHot}</if>
+            <if test="imgUrl != null "> and bbs_product.img_url = #{imgUrl}</if>
+            <if test="sizes != null "> and bbs_product.sizes = #{sizes}</if>
+            <if test="brandId != null "> and bbs_product.brand_id = #{brandId}</if>
+            <if test="colors != null "> and bbs_product.colors = #{colors}</if>
+            <if test="isShow != null "> and bbs_product.is_show = #{isShow}</if>
+            <if test="packageList != null "> and bbs_product.package_list = #{packageList}</if>
+            <if test="description != null "> and bbs_product.description = #{description}</if>
+            <if test="weight != null "> and bbs_product.weight = #{weight}</if>
+            <if test="isCommend != null "> and bbs_product.is_commend = #{isCommend}</if>
+            <if test="isNew != null "> and bbs_product.is_new = #{isNew}</if>
+            <if test="createTime != null "> and bbs_product.create_time = #{createTime}</if>
+            <if test="id != null "> and bbs_product.id = #{id}</if>
+        </where>
+    </select> 
+
+    <!-- 通过BbsProduct的id获得对应数据库中表的数据对象-->
+    <select id="selectBbsProductById" parameterType="java.lang.Long" resultMap="result_BbsProduct_Map">
+        select 
+            <include refid="bbs_product_Column" /> 
+        from bbs_product
+        where bbs_product.id = #{id}
+    </select> 
+
+    <!-- 将BbsProduct插入到对应数据库的表中,包括属性值为null的数据-->
+
+    <insert id="insertBbsProduct" parameterType="com.entity.BbsProduct">
+        insert into bbs_product(id,create_time,is_new,is_commend,weight,description,package_list,is_show,colors,brand_id,sizes,img_url,is_hot,name,is_del) 
+        values(#{id},#{createTime},#{isNew},#{isCommend},#{weight},#{description},#{packageList},#{isShow},#{colors},#{brandId},#{sizes},#{imgUrl},#{isHot},#{name},#{isDel})
+    </insert>
+
+    <!-- 将BbsProduct中属性值不为null的数据,插入到对应数据库的表中-->
+    <insert id="insertNonEmptyBbsProduct" parameterType="com.entity.BbsProduct">
+        insert into bbs_product
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="isNew != null">is_new,</if>
+            <if test="isCommend != null">is_commend,</if>
+            <if test="weight != null">weight,</if>
+            <if test="description != null">description,</if>
+            <if test="packageList != null">package_list,</if>
+            <if test="isShow != null">is_show,</if>
+            <if test="colors != null">colors,</if>
+            <if test="brandId != null">brand_id,</if>
+            <if test="sizes != null">sizes,</if>
+            <if test="imgUrl != null">img_url,</if>
+            <if test="isHot != null">is_hot,</if>
+            <if test="name != null">name,</if>
+            <if test="isDel != null">is_del,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null"> #{id},</if>
+            <if test="createTime != null"> #{createTime},</if>
+            <if test="isNew != null"> #{isNew},</if>
+            <if test="isCommend != null"> #{isCommend},</if>
+            <if test="weight != null"> #{weight},</if>
+            <if test="description != null"> #{description},</if>
+            <if test="packageList != null"> #{packageList},</if>
+            <if test="isShow != null"> #{isShow},</if>
+            <if test="colors != null"> #{colors},</if>
+            <if test="brandId != null"> #{brandId},</if>
+            <if test="sizes != null"> #{sizes},</if>
+            <if test="imgUrl != null"> #{imgUrl},</if>
+            <if test="isHot != null"> #{isHot},</if>
+            <if test="name != null"> #{name},</if>
+            <if test="isDel != null"> #{isDel},</if>
+        </trim>
+    </insert>
+
+    <!-- 将BbsProduct批量插入到对应数据库的表中-->
+    <insert id="insertBbsProductByBatch" parameterType="ArrayList">
+        insert into bbs_product(id,create_time,is_new,is_commend,weight,description,package_list,is_show,colors,brand_id,sizes,img_url,is_hot,name,is_del) values
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.createTime},#{item.isNew},#{item.isCommend},#{item.weight},#{item.description},#{item.packageList},#{item.isShow},#{item.colors},#{item.brandId},#{item.sizes},#{item.imgUrl},#{item.isHot},#{item.name},#{item.isDel})
+        </foreach>
+    </insert>
+
+    <!-- 通过BbsProduct的id将数据库表中对应的数据删除-->
+    <delete id="deleteBbsProductById" parameterType="java.lang.Long">
+        delete from bbs_product
+        where id = #{id}
+    </delete>
+
+    <!-- 通过辅助工具Assist中的条件将BbsProduct对应的数据库表的数据删除-->
+    <delete id="deleteBbsProduct" parameterType="com.common.Assist">
+        delete from bbs_product
+        <if test="require!=null"><include refid="Assist" /></if>
+    </delete>
+
+    <!-- 通过BbsProduct的id将BbsProduct的数据更新到数据库中对应的表,包括值null的数据-->
+    <update id="updateBbsProductById" parameterType="com.entity.BbsProduct">
+        update bbs_product set
+            create_time=#{createTime}
+            ,is_new=#{isNew}
+            ,is_commend=#{isCommend}
+            ,weight=#{weight}
+            ,description=#{description}
+            ,package_list=#{packageList}
+            ,is_show=#{isShow}
+            ,colors=#{colors}
+            ,brand_id=#{brandId}
+            ,sizes=#{sizes}
+            ,img_url=#{imgUrl}
+            ,is_hot=#{isHot}
+            ,name=#{name}
+            ,is_del=#{isDel}
+        where id=#{id}
+    </update>
+
+    <!-- 通过BbsProduct的id将BbsProduct中属性值不为null的数据更新到数据库对应的表中-->
+    <update id="updateNonEmptyBbsProductById" parameterType="com.entity.BbsProduct">
+        update bbs_product
+        <set>
+            <if test="createTime != null">
+                create_time=#{createTime},
+            </if>
+            <if test="isNew != null">
+                is_new=#{isNew},
+            </if>
+            <if test="isCommend != null">
+                is_commend=#{isCommend},
+            </if>
+            <if test="weight != null">
+                weight=#{weight},
+            </if>
+            <if test="description != null">
+                description=#{description},
+            </if>
+            <if test="packageList != null">
+                package_list=#{packageList},
+            </if>
+            <if test="isShow != null">
+                is_show=#{isShow},
+            </if>
+            <if test="colors != null">
+                colors=#{colors},
+            </if>
+            <if test="brandId != null">
+                brand_id=#{brandId},
+            </if>
+            <if test="sizes != null">
+                sizes=#{sizes},
+            </if>
+            <if test="imgUrl != null">
+                img_url=#{imgUrl},
+            </if>
+            <if test="isHot != null">
+                is_hot=#{isHot},
+            </if>
+            <if test="name != null">
+                name=#{name},
+            </if>
+            <if test="isDel != null">
+                is_del=#{isDel},
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+
+    <!-- 通过辅助工具Assist中的条件将BbsProduct中的数据更新到数据库对应的表中,包括值为null的数据-->
+    <update id="updateBbsProduct" parameterType="map">
+        update bbs_product
+        <set>
+                id=#{enti.id},
+                create_time=#{enti.createTime},
+                is_new=#{enti.isNew},
+                is_commend=#{enti.isCommend},
+                weight=#{enti.weight},
+                description=#{enti.description},
+                package_list=#{enti.packageList},
+                is_show=#{enti.isShow},
+                colors=#{enti.colors},
+                brand_id=#{enti.brandId},
+                sizes=#{enti.sizes},
+                img_url=#{enti.imgUrl},
+                is_hot=#{enti.isHot},
+                name=#{enti.name},
+                is_del=#{enti.isDel},
+        </set>
+        <if test="assist.require!=null"><include refid="updateAssist" /></if>
+    </update>
+
+    <!-- 通过辅助工具Assist中的条件将BbsProduct中属性值不为null的数据更新到数据库对应的表中-->
+    <update id="updateNonEmptyBbsProduct" parameterType="map">
+        update bbs_product
+        <set>
+            <if test="enti.id != null">
+                id=#{enti.id},
+            </if>
+            <if test="enti.createTime != null">
+                create_time=#{enti.createTime},
+            </if>
+            <if test="enti.isNew != null">
+                is_new=#{enti.isNew},
+            </if>
+            <if test="enti.isCommend != null">
+                is_commend=#{enti.isCommend},
+            </if>
+            <if test="enti.weight != null">
+                weight=#{enti.weight},
+            </if>
+            <if test="enti.description != null">
+                description=#{enti.description},
+            </if>
+            <if test="enti.packageList != null">
+                package_list=#{enti.packageList},
+            </if>
+            <if test="enti.isShow != null">
+                is_show=#{enti.isShow},
+            </if>
+            <if test="enti.colors != null">
+                colors=#{enti.colors},
+            </if>
+            <if test="enti.brandId != null">
+                brand_id=#{enti.brandId},
+            </if>
+            <if test="enti.sizes != null">
+                sizes=#{enti.sizes},
+            </if>
+            <if test="enti.imgUrl != null">
+                img_url=#{enti.imgUrl},
+            </if>
+            <if test="enti.isHot != null">
+                is_hot=#{enti.isHot},
+            </if>
+            <if test="enti.name != null">
+                name=#{enti.name},
+            </if>
+            <if test="enti.isDel != null">
+                is_del=#{enti.isDel},
+            </if>
+        </set>
+        <if test="assist.require!=null"><include refid="updateAssist" /></if>
+    </update>
+
+</mapper>

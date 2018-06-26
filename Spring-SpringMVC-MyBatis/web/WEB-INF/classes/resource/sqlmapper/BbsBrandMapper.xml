@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.BbsBrandDao">
+    <!-- BbsBrand的resultMap,column是给数据库列起的别名,它对应property类的属性-->
+    <resultMap id="result_BbsBrand_Map" type="com.entity.BbsBrand">
+        <id column="id" property="id" />
+        <result column="img_url" property="imgUrl" />
+        <result column="name" property="name" />
+        <result column="is_del" property="isDel" />
+        <result column="description" property="description" />
+        <result column="sort" property="sort" />
+        <result column="web_site" property="webSite" />
+        <result column="is_display" property="isDisplay" />
+    </resultMap>
+
+	   <!-- Assist用于辅助工具类setRequires设置的条件,${req.require}表示列名,#{req.value}表示值它是防SQL注入的 -->
+    <sql id="Assist">
+        <where>
+            <foreach collection="require" item="req" separator=" ">
+                ${req.require} 
+                <if test="req.value != null"> #{req.value}</if> 
+                <if test="req.values != null">
+                    <foreach collection="req.values" item="val" separator=","> 
+                        #{val} 
+                    </foreach> 
+                </if> 
+                <if test="req.suffix != null"> ${req.suffix}</if> 
+            </foreach>
+        </where>
+    </sql>
+
+	   <!-- updateAssist用于更新数据的使用它拓展自Assist,用于辅助工具类setRequires设置的条件,${req.require}表示列名,#{req.value}表示值它是防SQL注入的 -->
+    <sql id="updateAssist">
+        <where>
+            <foreach collection="assist.require" item="req" separator=" ">
+                ${req.require} 
+                <if test="req.value != null"> #{req.value}</if> 
+                <if test="req.values != null">
+                    <foreach collection="req.values" item="val" separator=","> 
+                        #{val} 
+                    </foreach> 
+                </if> 
+                <if test="req.suffix != null"> ${req.suffix}</if> 
+            </foreach>
+        </where>
+    </sql>
+
+    <!-- 数据库中表名为:bbs_brand的列名,as前是数据库的列明,as后是列的别名用于映射成实体类中的属性,需要注意的是别名必须与resultMap中的column别名一致 -->
+    <sql id="bbs_brand_Column">
+        bbs_brand.id as id
+        ,bbs_brand.img_url as img_url
+        ,bbs_brand.name as name
+        ,bbs_brand.is_del as is_del
+        ,bbs_brand.description as description
+        ,bbs_brand.sort as sort
+        ,bbs_brand.web_site as web_site
+        ,bbs_brand.is_display as is_display
+    </sql>
+
+    <!--获得类名为:BbsBrand对应的数据库表的数据总行数 -->
+    <select id="getBbsBrandRowCount" parameterType="com.common.Assist" resultType="java.lang.Long">
+        select count(id) from bbs_brand
+        <if test="require!=null"><include refid="Assist" /></if>
+    </select>
+    <!-- 获得类名为:BbsBrand对应数据库中表的数据集合 -->
+    <select id="selectBbsBrand" parameterType="com.common.Assist"  resultMap="result_BbsBrand_Map">
+        select  <if test="distinct !=null">${distinct}</if>
+        <choose>
+            <when test="resultColumn!=null">${resultColumn}</when>
+            <otherwise>
+        <include refid="bbs_brand_Column" /> 
+            </otherwise>
+        </choose>
+        from bbs_brand
+        <choose>
+            <when test="rowSize ==null">
+                <if test="require!=null">
+                    <include refid="Assist" />
+                </if>
+                <if test="order !=null">${order}</if>
+            </when>
+            <otherwise>
+                inner join
+                (
+                SELECT id as primary_key FROM bbs_brand
+                <if test="require!=null">
+                    <include refid="Assist" />
+                </if>
+                <if test="order !=null">${order}</if>
+                <choose>
+                    <when test="startRow !=null and rowSize !=null">LIMIT #{startRow},#{rowSize} </when>
+                    <when test="rowSize !=null">LIMIT #{rowSize}</when>
+                 </choose>
+                 ) as tmp
+                 on tmp.primary_key=bbs_brand.id
+            </otherwise>
+        </choose>
+    </select> 
+
+    <!-- 获得一个BbsBrand对象,以参数BbsBrand对象中不为空的属性作为条件进行查询-->
+    <select id="selectBbsBrandByObj" parameterType="com.entity.BbsBrand" resultMap="result_BbsBrand_Map">
+        select 
+            <include refid="bbs_brand_Column" /> 
+        from bbs_brand
+        <where>
+            <if test="isDisplay != null "> and bbs_brand.is_display = #{isDisplay}</if>
+            <if test="webSite != null "> and bbs_brand.web_site = #{webSite}</if>
+            <if test="sort != null "> and bbs_brand.sort = #{sort}</if>
+            <if test="description != null "> and bbs_brand.description = #{description}</if>
+            <if test="isDel != null "> and bbs_brand.is_del = #{isDel}</if>
+            <if test="name != null "> and bbs_brand.name = #{name}</if>
+            <if test="imgUrl != null "> and bbs_brand.img_url = #{imgUrl}</if>
+            <if test="id != null "> and bbs_brand.id = #{id}</if>
+        </where>
+    </select> 
+
+    <!-- 通过BbsBrand的id获得对应数据库中表的数据对象-->
+    <select id="selectBbsBrandById" parameterType="java.lang.Long" resultMap="result_BbsBrand_Map">
+        select 
+            <include refid="bbs_brand_Column" /> 
+        from bbs_brand
+        where bbs_brand.id = #{id}
+    </select> 
+
+    <!-- 将BbsBrand插入到对应数据库的表中,包括属性值为null的数据-->
+
+    <insert id="insertBbsBrand" parameterType="com.entity.BbsBrand">
+        insert into bbs_brand(id,img_url,name,is_del,description,sort,web_site,is_display) 
+        values(#{id},#{imgUrl},#{name},#{isDel},#{description},#{sort},#{webSite},#{isDisplay})
+    </insert>
+
+    <!-- 将BbsBrand中属性值不为null的数据,插入到对应数据库的表中-->
+    <insert id="insertNonEmptyBbsBrand" parameterType="com.entity.BbsBrand">
+        insert into bbs_brand
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="imgUrl != null">img_url,</if>
+            <if test="name != null">name,</if>
+            <if test="isDel != null">is_del,</if>
+            <if test="description != null">description,</if>
+            <if test="sort != null">sort,</if>
+            <if test="webSite != null">web_site,</if>
+            <if test="isDisplay != null">is_display,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null"> #{id},</if>
+            <if test="imgUrl != null"> #{imgUrl},</if>
+            <if test="name != null"> #{name},</if>
+            <if test="isDel != null"> #{isDel},</if>
+            <if test="description != null"> #{description},</if>
+            <if test="sort != null"> #{sort},</if>
+            <if test="webSite != null"> #{webSite},</if>
+            <if test="isDisplay != null"> #{isDisplay},</if>
+        </trim>
+    </insert>
+
+    <!-- 将BbsBrand批量插入到对应数据库的表中-->
+    <insert id="insertBbsBrandByBatch" parameterType="ArrayList">
+        insert into bbs_brand(id,img_url,name,is_del,description,sort,web_site,is_display) values
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.imgUrl},#{item.name},#{item.isDel},#{item.description},#{item.sort},#{item.webSite},#{item.isDisplay})
+        </foreach>
+    </insert>
+
+    <!-- 通过BbsBrand的id将数据库表中对应的数据删除-->
+    <delete id="deleteBbsBrandById" parameterType="java.lang.Long">
+        delete from bbs_brand
+        where id = #{id}
+    </delete>
+
+    <!-- 通过辅助工具Assist中的条件将BbsBrand对应的数据库表的数据删除-->
+    <delete id="deleteBbsBrand" parameterType="com.common.Assist">
+        delete from bbs_brand
+        <if test="require!=null"><include refid="Assist" /></if>
+    </delete>
+
+    <!-- 通过BbsBrand的id将BbsBrand的数据更新到数据库中对应的表,包括值null的数据-->
+    <update id="updateBbsBrandById" parameterType="com.entity.BbsBrand">
+        update bbs_brand set
+            img_url=#{imgUrl}
+            ,name=#{name}
+            ,is_del=#{isDel}
+            ,description=#{description}
+            ,sort=#{sort}
+            ,web_site=#{webSite}
+            ,is_display=#{isDisplay}
+        where id=#{id}
+    </update>
+
+    <!-- 通过BbsBrand的id将BbsBrand中属性值不为null的数据更新到数据库对应的表中-->
+    <update id="updateNonEmptyBbsBrandById" parameterType="com.entity.BbsBrand">
+        update bbs_brand
+        <set>
+            <if test="imgUrl != null">
+                img_url=#{imgUrl},
+            </if>
+            <if test="name != null">
+                name=#{name},
+            </if>
+            <if test="isDel != null">
+                is_del=#{isDel},
+            </if>
+            <if test="description != null">
+                description=#{description},
+            </if>
+            <if test="sort != null">
+                sort=#{sort},
+            </if>
+            <if test="webSite != null">
+                web_site=#{webSite},
+            </if>
+            <if test="isDisplay != null">
+                is_display=#{isDisplay},
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+
+    <!-- 通过辅助工具Assist中的条件将BbsBrand中的数据更新到数据库对应的表中,包括值为null的数据-->
+    <update id="updateBbsBrand" parameterType="map">
+        update bbs_brand
+        <set>
+                id=#{enti.id},
+                img_url=#{enti.imgUrl},
+                name=#{enti.name},
+                is_del=#{enti.isDel},
+                description=#{enti.description},
+                sort=#{enti.sort},
+                web_site=#{enti.webSite},
+                is_display=#{enti.isDisplay},
+        </set>
+        <if test="assist.require!=null"><include refid="updateAssist" /></if>
+    </update>
+
+    <!-- 通过辅助工具Assist中的条件将BbsBrand中属性值不为null的数据更新到数据库对应的表中-->
+    <update id="updateNonEmptyBbsBrand" parameterType="map">
+        update bbs_brand
+        <set>
+            <if test="enti.id != null">
+                id=#{enti.id},
+            </if>
+            <if test="enti.imgUrl != null">
+                img_url=#{enti.imgUrl},
+            </if>
+            <if test="enti.name != null">
+                name=#{enti.name},
+            </if>
+            <if test="enti.isDel != null">
+                is_del=#{enti.isDel},
+            </if>
+            <if test="enti.description != null">
+                description=#{enti.description},
+            </if>
+            <if test="enti.sort != null">
+                sort=#{enti.sort},
+            </if>
+            <if test="enti.webSite != null">
+                web_site=#{enti.webSite},
+            </if>
+            <if test="enti.isDisplay != null">
+                is_display=#{enti.isDisplay},
+            </if>
+        </set>
+        <if test="assist.require!=null"><include refid="updateAssist" /></if>
+    </update>
+
+</mapper>

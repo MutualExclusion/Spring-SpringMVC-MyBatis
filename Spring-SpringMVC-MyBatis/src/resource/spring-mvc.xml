@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.1.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd">
+<!-- 把controller交给spring管理 -->
+	<context:component-scan base-package="com.controller" />
+	<!-- spring文件上传配置 -->
+	<bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="maxUploadSize" value="1048576" />
+		<property name="defaultEncoding" value="UTF-8" />
+	</bean>
+    <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter">
+        <property name="messageConverters">
+            <list>
+                <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter" />
+            </list>
+        </property>
+    </bean>
+	<!-- 注解驱动 -->
+	<mvc:annotation-driven>
+		<!-- HTML 消息转换 utf-8 -->
+		<mvc:message-converters register-defaults="true">
+			<bean class="org.springframework.http.converter.StringHttpMessageConverter">
+				<property name="supportedMediaTypes">
+					<list>
+						<value>text/plain;charset=UTF-8</value>
+						<value>text/html;charset=UTF-8</value>
+						<value>application/json;charset=UTF-8</value>
+					</list>
+				</property>
+			</bean>
+		</mvc:message-converters>
+	</mvc:annotation-driven>
+	<mvc:resources location="images/" mapping="/images/**" />
+	<mvc:resources location="js/" mapping="/js/**" />
+	<mvc:resources location="html/" mapping="/html/**" />
+	<mvc:resources location="css/" mapping="/css/**" />
+	<!-- 放行静态资源 -->
+	<mvc:default-servlet-handler />
+	<!-- Spring MVC拦截器定义 -->
+	<mvc:interceptors>
+		<mvc:interceptor>
+		<!-- 拦截所有的请求 -->
+		<mvc:mapping path="/*"/>
+		<!-- 使用bean定义一个Interceptor -->
+		<bean class="com.interceptor.adminInterceptor" />
+		</mvc:interceptor>
+	</mvc:interceptors>
+	<!-- 视图解析器，设置逻辑视图前后缀 -->
+	<bean
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+
+</beans>
